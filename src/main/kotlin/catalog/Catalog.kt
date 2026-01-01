@@ -8,7 +8,7 @@ package com.koosco.catalog
  */
 interface Catalog {
 
-    fun createTable(tableName: String)
+    fun createTable(tableName: String, columns: List<ColumnMeta>)
 
     fun getTableMeta(tableName: String): TableMeta
 

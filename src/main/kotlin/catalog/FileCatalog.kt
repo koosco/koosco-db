@@ -26,20 +26,23 @@ class FileCatalog(
         loadIfExists()
     }
 
-    override fun createTable(tableName: String) {
+    override fun createTable(tableName: String, columns: List<ColumnMeta>) {
         require(tableName.isNotBlank()) { "tableName is blank" }
         if (metas.containsKey(tableName)) error("Table already exists: $tableName")
 
         val tablePath = baseDir.resolve("$tableName.tbl").toString()
-        val meta = TableMeta(tableName, tablePath)
 
         val path = Path.of(tablePath)
         if (!Files.exists(path)) {
             Files.createFile(path)
         }
 
-        appendMeta(meta)
+        val meta = TableMeta(
+            tableName = tableName,
+            filePath = tablePath,
+            columns = columns)
 
+        appendMeta(meta)
         metas[tableName] = meta
     }
 
@@ -54,10 +57,21 @@ class FileCatalog(
 
         DataInputStream(BufferedInputStream(Files.newInputStream(catalogFile))).use { input ->
             while (true) {
-                val name = runCatching { readString(input) }.getOrNull() ?: break
-                val path = readString(input)
+                val tableName = runCatching { readString(input) }.getOrNull() ?: break
+                val filePath = readString(input)
+                val columCount = input.readInt()
 
-                metas[name] = TableMeta(name, path)
+                val columns = buildList {
+                    repeat(columCount) {
+                        val name = readString(input)
+                        val type = ColumnType.valueOf(readString(input))
+                        val nullable = input.readBoolean()
+
+                        add(ColumnMeta(name, type, nullable))
+                    }
+                }
+
+                metas[tableName] = TableMeta(tableName, filePath, columns)
             }
         }
     }
@@ -75,6 +89,13 @@ class FileCatalog(
         ).use { out ->
             writeString(out, meta.tableName)
             writeString(out, meta.filePath)
+            out.writeInt(meta.columns.size)
+
+            meta.columns.forEach {
+                writeString(out, it.name)
+                writeString(out, it.type.name)
+                out.writeBoolean(it.nullable)
+            }
         }
     }
 

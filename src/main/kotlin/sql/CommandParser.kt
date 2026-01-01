@@ -25,7 +25,17 @@ class CommandParser {
                     )
                 ) { "Usage: create table <table_name>" }
 
-                CreateTableCommand(tokens[2])
+                val tableName = tokens[2]
+                val columnsRaw = tokens.drop(3).joinToString(" ")
+                    .removePrefix("(")
+                    .removeSuffix(")")
+
+                val columns = columnsRaw.split(",").map {
+                    val p = it.trim().split(" ")
+                    CreateColumnDef(name = p[0], type = p[1], nullable = !p.contains("notnull"))
+                }
+
+                CreateTableCommand(tokens[2], columns)
             }
 
             "insert" -> {
@@ -57,6 +67,11 @@ class CommandParser {
                     )
                 ) { "Usage: show tables" }
                 ShowTablesCommand
+            }
+
+            "describe" -> {
+                require(tokens.size == 2) { "Usage: describe <table>" }
+                DescribeTableCommand(tokens[1])
             }
 
             else -> error("Unknown command: ${tokens[0]}")

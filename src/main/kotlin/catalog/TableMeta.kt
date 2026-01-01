@@ -10,5 +10,7 @@ data class TableMeta(
 
     val tableName: String,
 
-    val filePath: String
+    val filePath: String,
+
+    val columns: List<ColumnMeta>
 )

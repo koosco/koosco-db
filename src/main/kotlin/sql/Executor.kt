@@ -1,6 +1,8 @@
 package com.koosco.sql
 
 import com.koosco.catalog.Catalog
+import com.koosco.catalog.ColumnMeta
+import com.koosco.catalog.ColumnType
 import com.koosco.storage.TableManager
 
 /**
@@ -17,7 +19,15 @@ class Executor(
     fun execute(command: Command) {
         when (command) {
             is CreateTableCommand -> {
-                catalog.createTable(command.tableName)
+                val columns = command.columns.map {
+                    ColumnMeta(
+                        name = it.name,
+                        type = ColumnType.valueOf(it.type.uppercase()),
+                        nullable = it.nullable
+                    )
+                }
+
+                catalog.createTable(command.tableName, columns)
                 println("OK")
             }
 
@@ -37,6 +47,23 @@ class Executor(
                 if (tables.isEmpty()) println("No tables found")
                 else tables.forEach {
                     println(it)
+                }
+            }
+
+            is DescribeTableCommand -> {
+                val meta = catalog.getTableMeta(command.tableName)
+
+                // 각 컬럼의 최대 너비 계산
+                val maxNameLen = maxOf("column_name".length, meta.columns.maxOfOrNull { it.name.length } ?: 0)
+                val maxTypeLen = maxOf("type".length, meta.columns.maxOfOrNull { it.type.name.length } ?: 0)
+
+                // 헤더 출력
+                println("${"column_name".padEnd(maxNameLen)} | ${"type".padEnd(maxTypeLen)} | nullable")
+                println("${"".padEnd(maxNameLen, '-')}-+-${"".padEnd(maxTypeLen, '-')}-+----------")
+
+                // 데이터 출력
+                meta.columns.forEach {
+                    println("${it.name.padEnd(maxNameLen)} | ${it.type.name.padEnd(maxTypeLen)} | ${it.nullable}")
                 }
             }
         }

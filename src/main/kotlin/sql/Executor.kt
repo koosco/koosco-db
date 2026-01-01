@@ -20,14 +20,24 @@ class Executor(
                 catalog.createTable(command.tableName)
                 println("OK")
             }
+
             is InsertCommand -> {
                 val table = tableManager.open(command.tableName)
                 table.insertRow(command.value.toByteArray())
                 println("OK")
             }
+
             is SelectCommand -> {
                 val table = tableManager.open(command.tableName)
                 table.scanAll().map { String(it) }.forEach { println(it) }
+            }
+
+            ShowTablesCommand -> {
+                val tables = catalog.listTables()
+                if (tables.isEmpty()) println("No tables found")
+                else tables.forEach {
+                    println(it)
+                }
             }
         }
     }

@@ -1,8 +1,8 @@
 package com.koosco.storage
 
+import com.koosco.buffer.BufferPool
 import com.koosco.common.PageId
 import com.koosco.common.Rid
-import java.nio.ByteBuffer
 
 /**
  * fileName       : HeapTable
@@ -12,6 +12,7 @@ import java.nio.ByteBuffer
  */
 class HeapTable(
     private val diskManager: DiskManager,
+    private val bufferPool: BufferPool
 ) {
     private val pageIds = mutableListOf<PageId>() // TODO : catalog 관리 필요
 
@@ -22,14 +23,12 @@ class HeapTable(
      */
     private fun allocateNewPage(): PageId {
         val pageId = diskManager.allocatePage()
-        val buffer = ByteBuffer.allocate(Page.PAGE_SIZE)
-
-        diskManager.readPage(pageId, buffer)
+        val buffer = bufferPool.getPage(pageId)
 
         val page = SlottedPage(buffer)
         page.init()
 
-        diskManager.writePage(pageId, buffer)
+        bufferPool.markDirty(pageId)
         pageIds.add(pageId)
 
         return pageId
@@ -42,13 +41,12 @@ class HeapTable(
      */
     fun insertRow(record: ByteArray): Rid {
         for (pageId in pageIds) {
-            val buffer = ByteBuffer.allocate(Page.PAGE_SIZE)
-            diskManager.readPage(pageId, buffer)
-
+            val buffer = bufferPool.getPage(pageId)
             val page = SlottedPage(buffer)
+
             try {
                 val slotId = page.insert(record)
-                diskManager.writePage(pageId, buffer)
+                bufferPool.markDirty(pageId)
 
                 return Rid(pageId, slotId)
             } catch (_: IllegalStateException) {
@@ -57,12 +55,11 @@ class HeapTable(
         }
 
         val newPageId = allocateNewPage()
-        val buffer = ByteBuffer.allocate(Page.PAGE_SIZE)
-        diskManager.readPage(newPageId, buffer)
-
+        val buffer = bufferPool.getPage(newPageId)
         val page = SlottedPage(buffer)
+
         val slotId = page.insert(record)
-        diskManager.writePage(newPageId, buffer)
+        bufferPool.markDirty(newPageId)
 
         return Rid(newPageId, slotId)
     }
@@ -71,12 +68,10 @@ class HeapTable(
         val result = mutableListOf<ByteArray>()
 
         for (pageId in pageIds) {
-            val buffer = ByteBuffer.allocate(Page.PAGE_SIZE)
-            diskManager.readPage(pageId, buffer)
-
+            val buffer = bufferPool.getPage(pageId)
             val page = SlottedPage(buffer)
-            val slotCount = page.slotCount()
 
+            val slotCount = page.slotCount()
             for (slotId in 0 until slotCount) {
                 try {
                     result.add(page.read(slotId))

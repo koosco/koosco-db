@@ -32,6 +32,7 @@ class FileCatalog(
 
         val tablePath = baseDir.resolve("$tableName.tbl").toString()
 
+        // TODO : 파일 생성 책임 분리 -> Storage
         val path = Path.of(tablePath)
         if (!Files.exists(path)) {
             Files.createFile(path)
@@ -77,6 +78,7 @@ class FileCatalog(
     }
 
     private fun appendMeta(meta: TableMeta) {
+        // TODO : 루트 경로일 때 parent == null 처리
         Files.createDirectories(catalogFile.parent)
         DataOutputStream(
             BufferedOutputStream(
@@ -93,7 +95,7 @@ class FileCatalog(
 
             meta.columns.forEach {
                 writeString(out, it.name)
-                writeString(out, it.type.name)
+                writeString(out, it.type.name) // TODO : enum -> string 변경 시 주의
                 out.writeBoolean(it.nullable)
             }
         }

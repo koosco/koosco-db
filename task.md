@@ -201,31 +201,69 @@ SQL은 최소 (CREATE / INSERT / SELECT)
 
 ---
 
-## H. B+Tree Index (Read)
+## H. SQL 실행 계층
 
 ### H-1 ☑ 최소 구현
+
+- [x] CommandParser
+- [x] Executor
+- [x] **CommandResult 도입**
+  - OkResult
+  - RowsResult
+  - TablesResult
+  - DescribeResult
+- [x] Executor에서 println 제거
+- [x] 타입 안전한 결과 반환
+
+### H-2 🔧 리팩토링 / 성능
+
+- [ ] 컬럼 선택(Project)
+- [ ] WHERE(Filter)
+
+---
+
+## I. Engine / Orchestration
+
+### I-1 ☑ 최소 구현
+
+- [x] DbEngine 인터페이스
+- [x] DefaultDbEngine 구현
+- [x] DbEngineFactory
+- [x] 초기화 로직 완전 분리
+- [x] 단일 DiskManager / BufferPool 공유
+
+### I-2 🔧 리팩토링 / 성능
+
+- [ ] 설정 파일 기반 초기화
+- [ ] 멀티 데이터베이스 지원
+
+---
+
+## J. B+Tree Index (Read)
+
+### J-1 ☑ 최소 구현
 
 - [ ] B+Tree node layout
 - [ ] `search(key)`
 - [ ] leaf linked list
 
-### H-2 🔧 리팩토링 / 성능
+### J-2 🔧 리팩토링 / 성능
 
 - [ ] range scan iterator
 - [ ] prefix compression (optional)
 
 ---
 
-## I. B+Tree Index (Write)
+## K. B+Tree Index (Write)
 
-### I-1 ☑ 최소 구현
+### K-1 ☑ 최소 구현
 
 - [ ] insert
 - [ ] leaf split
 - [ ] internal split
 - [ ] root split
 
-### I-2 🔧 리팩토링 / 성능
+### K-2 🔧 리팩토링 / 성능
 
 - [ ] delete
 - [ ] merge / redistribute
@@ -233,24 +271,24 @@ SQL은 최소 (CREATE / INSERT / SELECT)
 
 ---
 
-## J. 제약조건 (Constraints)
+## L. 제약조건 (Constraints)
 
-### J-1 ☑ 최소 구현
+### L-1 ☑ 최소 구현
 
 - [ ] Primary Key (unique index)
 - [ ] NOT NULL
 - [ ] UNIQUE
 
-### J-2 🔧 리팩토링 / 성능
+### L-2 🔧 리팩토링 / 성능
 
 - [ ] CHECK constraint
 - [ ] Foreign Key
 
 ---
 
-## K. Query Executor
+## M. Query Executor
 
-### K-1 ☑ 최소 구현
+### M-1 ☑ 최소 구현
 
 - [ ] SeqScan
 - [ ] IndexScan
@@ -258,202 +296,202 @@ SQL은 최소 (CREATE / INSERT / SELECT)
 - [ ] Project
 - [ ] iterator (`open / next / close`)
 
-### K-2 🔧 리팩토링 / 성능
+### M-2 🔧 리팩토링 / 성능
 
 - [ ] predicate pushdown
 - [ ] column pruning
 
 ---
 
-## L. Transaction Manager
+## N. Transaction Manager
 
-### L-1 ☑ 최소 구현
+### N-1 ☑ 최소 구현
 
 - [ ] begin / commit / abort
 - [ ] autocommit
 - [ ] tx context
 
-### L-2 🔧 리팩토링 / 성능
+### N-2 🔧 리팩토링 / 성능
 
 - [ ] tx 상태 진단
 
 ---
 
-## M. Lock Manager (READ COMMITTED)
+## O. Lock Manager (READ COMMITTED)
 
-### M-1 ☑ 최소 구현
+### O-1 ☑ 최소 구현
 
 - [ ] row-level S / X lock
 - [ ] lock table
 - [ ] wait queue
 - [ ] timeout 기반 deadlock 회피
 
-### M-2 🔧 리팩토링 / 성능
+### O-2 🔧 리팩토링 / 성능
 
 - [ ] deadlock detection
 - [ ] intention lock
 
 ---
 
-## N. WAL (Logging)
+## P. WAL (Logging)
 
-### N-1 ☑ 최소 구현
+### P-1 ☑ 최소 구현
 
 - [ ] append-only WAL
 - [ ] redo log record
 - [ ] LSN
 - [ ] write-ahead rule
 
-### N-2 🔧 리팩토링 / 성능
+### P-2 🔧 리팩토링 / 성능
 
 - [ ] group commit
 - [ ] log buffer
 
 ---
 
-## O. Crash Recovery
+## Q. Crash Recovery
 
-### O-1 ☑ 최소 구현
+### Q-1 ☑ 최소 구현
 
 - [ ] restart 시 redo replay
 
-### O-2 🔧 리팩토링 / 성능
+### Q-2 🔧 리팩토링 / 성능
 
 - [ ] checkpoint
 - [ ] dirty page table
 
 ---
 
-## P. Undo / Rollback
+## R. Undo / Rollback
 
-### P-1 ☑ 최소 구현
+### R-1 ☑ 최소 구현
 
 - [ ] abort 시 undo
 - [ ] page-level undo
 
-### P-2 🔧 리팩토링 / 성능
+### R-2 🔧 리팩토링 / 성능
 
 - [ ] ARIES-style undo
 - [ ] savepoint
 
 ---
 
-## Q. Foreign Key
+## S. Foreign Key
 
-### Q-1 ☑ 최소 구현
+### S-1 ☑ 최소 구현
 
 - [ ] parent 존재 검증
 - [ ] delete restrict
 
-### Q-2 🔧 리팩토링 / 성능
+### S-2 🔧 리팩토링 / 성능
 
 - [ ] cascade / set null
 
 ---
 
-## R. Isolation Level 확장
+## T. Isolation Level 확장
 
-### R-1 ☑ 최소 구현
+### T-1 ☑ 최소 구현
 
 - [ ] READ COMMITTED 안정화
 
-### R-2 🔧 리팩토링 / 성능
+### T-2 🔧 리팩토링 / 성능
 
 - [ ] REPEATABLE READ
 - [ ] SERIALIZABLE
 
 ---
 
-## S. Optimizer (Rule-based)
+## U. Optimizer (Rule-based)
 
-### S-1 ☑ 최소 구현
+### U-1 ☑ 최소 구현
 
 - [ ] index 우선 선택 규칙
 - [ ] filter pushdown
 
-### S-2 🔧 리팩토링 / 성능
+### U-2 🔧 리팩토링 / 성능
 
 - [ ] cost model
 - [ ] join order
 
 ---
 
-## T. Statistics
+## V. Statistics
 
-### T-1 ☑ 최소 구현
+### V-1 ☑ 최소 구현
 
 - [ ] row count
 - [ ] distinct count
 
-### T-2 🔧 리팩토링 / 성능
+### V-2 🔧 리팩토링 / 성능
 
 - [ ] histogram
 - [ ] analyze
 
 ---
 
-## U. Join
+## W. Join
 
-### U-1 ☑ 최소 구현
+### W-1 ☑ 최소 구현
 
 - [ ] nested loop join
 
-### U-2 🔧 리팩토링 / 성능
+### W-2 🔧 리팩토링 / 성능
 
 - [ ] hash join
 - [ ] index nested loop join
 
 ---
 
-## V. 운영 기능
+## X. 운영 기능
 
-### V-1 ☑ 최소 구현
+### X-1 ☑ 최소 구현
 
-- [ ] SHOW TABLES
-- [ ] DESCRIBE
+- [x] SHOW TABLES
+- [x] DESCRIBE
 - [ ] EXPLAIN (형태만)
 
-### V-2 🔧 리팩토링 / 성능
+### X-2 🔧 리팩토링 / 성능
 
 - [ ] metrics
 - [ ] debug commands
 
 ---
 
-## W. 안정성 / 테스트
+## Y. 안정성 / 테스트
 
-### W-1 ☑ 최소 구현
+### Y-1 ☑ 최소 구현
 
 - [ ] 랜덤 테스트
 - [ ] 재시작 반복 테스트
 
-### W-2 🔧 리팩토링 / 성능
+### Y-2 🔧 리팩토링 / 성능
 
 - [ ] crash fuzzing
 - [ ] 동시성 테스트
 
 ---
 
-## X. 성능 튜닝 1차
+## Z. 성능 튜닝 1차
 
-### X-1 ☑ 최소 구현
+### Z-1 ☑ 최소 구현
 
 - [ ] 병목 측정 포인트 정의
 
-### X-2 🔧 리팩토링 / 성능
+### Z-2 🔧 리팩토링 / 성능
 
 - [ ] buffer/page size 튜닝 가이드
 - [ ] split 빈도 감소 전략
 
 ---
 
-## Y. 성능 튜닝 2차 (고급)
+## AA. 성능 튜닝 2차 (고급)
 
-### Y-1 ☑ 최소 구현
+### AA-1 ☑ 최소 구현
 
 - [ ] (해당 없음)
 
-### Y-2 🔧 리팩토링 / 성능
+### AA-2 🔧 리팩토링 / 성능
 
 - [ ] latch contention 감소
 - [ ] prefetch / read-ahead
@@ -461,15 +499,15 @@ SQL은 최소 (CREATE / INSERT / SELECT)
 
 ---
 
-## Z. 마무리 / 문서화
+## AB. 마무리 / 문서화
 
-### Z-1 ☑ 최소 구현
+### AB-1 ☑ 최소 구현
 
 - [ ] 지원 기능 목록 명세
 - [ ] 아키텍처 다이어그램
 - [ ] 핵심 자료구조 설명
 
-### Z-2 🔧 리팩토링 / 성능
+### AB-2 🔧 리팩토링 / 성능
 
 - [ ] 벤치마크 결과 정리
 - [ ] 설계 트레이드오프 문서화
@@ -478,7 +516,7 @@ SQL은 최소 (CREATE / INSERT / SELECT)
 
 ## ✅ MVP 완주 기준
 
-**B → C → E → G → I → L → M → N → O**
+**B → C → E → G → K → N → O → P → Q**
 
 ===
 

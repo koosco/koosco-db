@@ -16,56 +16,42 @@ class Executor(
     private val tableManager: TableManager,
 ) {
 
-    fun execute(command: Command) {
-        when (command) {
-            is CreateTableCommand -> {
-                val columns = command.columns.map {
-                    ColumnMeta(
-                        name = it.name,
-                        type = ColumnType.valueOf(it.type.uppercase()),
-                        nullable = it.nullable
-                    )
-                }
-
-                catalog.createTable(command.tableName, columns)
-                println("OK")
+    fun execute(command: Command): CommandResult = when (command) {
+        is CreateTableCommand -> {
+            val columns = command.columns.map {
+                ColumnMeta(
+                    name = it.name,
+                    type = ColumnType.valueOf(it.type.uppercase()),
+                    nullable = it.nullable
+                )
             }
 
-            is InsertCommand -> {
-                val table = tableManager.open(command.tableName)
-                table.insertRow(command.value.toByteArray())
-                println("OK")
-            }
+            catalog.createTable(command.tableName, columns)
+            OkResult
+        }
 
-            is SelectCommand -> {
-                val table = tableManager.open(command.tableName)
-                table.scanAll().map { String(it) }.forEach { println(it) }
-            }
+        is InsertCommand -> {
+            val table = tableManager.open(command.tableName)
+            table.insertRow(command.value.toByteArray())
+            OkResult
+        }
 
-            ShowTablesCommand -> {
-                val tables = catalog.listTables()
-                if (tables.isEmpty()) println("No tables found")
-                else tables.forEach {
-                    println(it)
-                }
-            }
+        is SelectCommand -> {
+            val table = tableManager.open(command.tableName)
+            val rows = table.scanAll()
+                .map { listOf(String(it)) }
 
-            is DescribeTableCommand -> {
-                val meta = catalog.getTableMeta(command.tableName)
+            RowsResult(rows)
+        }
 
-                // 각 컬럼의 최대 너비 계산
-                val maxNameLen = maxOf("column_name".length, meta.columns.maxOfOrNull { it.name.length } ?: 0)
-                val maxTypeLen = maxOf("type".length, meta.columns.maxOfOrNull { it.type.name.length } ?: 0)
+        ShowTablesCommand -> {
+            TablesResult(catalog.listTables())
+        }
 
-                // 헤더 출력
-                println("${"column_name".padEnd(maxNameLen)} | ${"type".padEnd(maxTypeLen)} | nullable")
-                println("${"".padEnd(maxNameLen, '-')}-+-${"".padEnd(maxTypeLen, '-')}-+----------")
+        is DescribeTableCommand -> {
+            val meta = catalog.getTableMeta(command.tableName)
 
-                // 데이터 출력
-                meta.columns.forEach {
-                    println("${it.name.padEnd(maxNameLen)} | ${it.type.name.padEnd(maxTypeLen)} | ${it.nullable}")
-                }
-            }
+            DescribeResult(meta.columns)
         }
     }
 }

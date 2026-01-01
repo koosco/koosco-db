@@ -1,9 +1,7 @@
 package com.koosco
 
-import com.koosco.catalog.FileCatalog
 import com.koosco.cil.Repl
-import com.koosco.sql.Executor
-import com.koosco.storage.TableManager
+import com.koosco.db.engine.DbEngineFactory
 import java.nio.file.Path
 
 /**
@@ -16,15 +14,7 @@ fun main() {
     println("KooscoDB starting...")
 
     val baseDir = Path.of("data")
-    val catalogFile = baseDir.resolve("catalog.meta")
+    val dbEngine = DbEngineFactory.create(baseDir)
 
-    val catalog = FileCatalog(
-        baseDir = baseDir,
-        catalogFile = catalogFile
-    )
-
-    val tableManager = TableManager(catalog)
-    val executor = Executor(catalog, tableManager)
-
-    Repl(executor).run()
+    Repl(dbEngine).run()
 }

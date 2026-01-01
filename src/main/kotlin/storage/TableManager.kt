@@ -1,7 +1,7 @@
 package com.koosco.storage
 
+import com.koosco.buffer.BufferPool
 import com.koosco.catalog.Catalog
-import java.nio.file.Paths
 
 /**
  * fileName       : TableManager
@@ -10,7 +10,9 @@ import java.nio.file.Paths
  * description    :
  */
 class TableManager(
-    private val catalog: Catalog
+    private val catalog: Catalog,
+    private val diskManager: DiskManager,
+    private val bufferPool: BufferPool
 ) {
 
     private val opened = mutableMapOf<String, HeapTable>()
@@ -18,7 +20,10 @@ class TableManager(
     fun open(tableName: String): HeapTable {
         return opened.getOrPut(tableName) {
             val meta = catalog.getTableMeta(tableName)
-            HeapTable(DiskManager(Paths.get(meta.filePath)))
+            HeapTable(
+                diskManager = diskManager,
+                bufferPool = bufferPool,
+            )
         }
     }
 }

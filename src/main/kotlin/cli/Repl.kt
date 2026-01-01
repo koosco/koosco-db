@@ -19,14 +19,17 @@ class Repl(
         while (true) {
             print("KooscoDB> ")
             val line = readLine() ?: break
+            val trimmed = line.trim()
 
-            if (line.lowercase() == "exit") {
+            if (trimmed.lowercase() == "exit") {
                 println("bye")
                 break
             }
 
+            if (trimmed.isEmpty()) continue
+
             try {
-                parser.parse(line).run {
+                parser.parse(trimmed).run {
                     executor.execute(this)
                 }
             } catch (e: Exception) {

@@ -1,6 +1,7 @@
 package com.koosco.sql
 
-import com.koosco.storage.HeapTable
+import com.koosco.catalog.Catalog
+import com.koosco.storage.TableManager
 
 /**
  * fileName       : Executor
@@ -9,19 +10,24 @@ import com.koosco.storage.HeapTable
  * description    :
  */
 class Executor(
-    private val heapTable: HeapTable
+    private val catalog: Catalog,
+    private val tableManager: TableManager,
 ) {
 
     fun execute(command: Command) {
         when (command) {
-            is InsertCommand -> {
-                heapTable.insertRow(command.value.toByteArray())
+            is CreateTableCommand -> {
+                catalog.createTable(command.tableName)
+                println("OK")
             }
-
-            SelectCommand -> {
-                heapTable.scanAll()
-                    .map { String(it) }
-                    .forEach { println(it) }
+            is InsertCommand -> {
+                val table = tableManager.open(command.tableName)
+                table.insertRow(command.value.toByteArray())
+                println("OK")
+            }
+            is SelectCommand -> {
+                val table = tableManager.open(command.tableName)
+                table.scanAll().map { String(it) }.forEach { println(it) }
             }
         }
     }

@@ -1,10 +1,10 @@
 package com.koosco
 
+import com.koosco.catalog.FileCatalog
 import com.koosco.cil.Repl
 import com.koosco.sql.Executor
-import com.koosco.storage.DiskManager
-import com.koosco.storage.HeapTable
-import java.nio.file.Paths
+import com.koosco.storage.TableManager
+import java.nio.file.Path
 
 /**
  * fileName       : ${NAME}
@@ -15,9 +15,16 @@ import java.nio.file.Paths
 fun main() {
     println("KooscoDB starting...")
 
-    val diskManager = DiskManager(Paths.get("data/heap.db"))
-    val heapTable = HeapTable(diskManager)
-    val executor = Executor(heapTable)
+    val baseDir = Path.of("data")
+    val catalogFile = baseDir.resolve("catalog.meta")
+
+    val catalog = FileCatalog(
+        baseDir = baseDir,
+        catalogFile = catalogFile
+    )
+
+    val tableManager = TableManager(catalog)
+    val executor = Executor(catalog, tableManager)
 
     Repl(executor).run()
 }

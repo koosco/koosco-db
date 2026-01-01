@@ -9,14 +9,34 @@ package com.koosco.sql
 class CommandParser {
 
     fun parse(input: String): Command {
-        val tokens = input.trim().split(" ", limit = 2)
+
+        val s = input.trim()
+        if (s.isEmpty()) error("Empty command")
+
+        val tokens = s.split(Regex("\\s+"))
 
         return when (tokens[0].lowercase()) {
-            "insert" -> {
-                require(tokens.size == 2) { "Insert command requires value." }
-                InsertCommand(tokens[1])
+            "create" -> {
+                require(tokens.size >= 3) { "Usage: create table <table_name>" }
+                require("table".equals(tokens[1], ignoreCase = true)) { "Usage: create table <table_name>" }
+
+                CreateTableCommand(tokens[2])
             }
-            "select" -> SelectCommand
+            "insert" -> {
+                require(tokens.size >= 4) { "Usage: insert into <table> <value...>"}
+                require("into".equals(tokens[1], ignoreCase = true)) { "Usage: insert into <table> <value...>" }
+
+                val table = tokens[2]
+                val value = tokens.drop(3).joinToString(" ")
+
+                InsertCommand(table, value)
+            }
+            "select" -> {
+                val fromIdx = tokens.indexOfFirst { "from".equals(it, ignoreCase = true) }
+                require(fromIdx != -1 && fromIdx + 1 < tokens.size) { "Usage: select * from <table>"}
+                SelectCommand(tokens[fromIdx + 1])
+            }
+
             else -> error("Unknown command: ${tokens[0]}")
         }
     }

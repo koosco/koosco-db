@@ -8,6 +8,8 @@ package com.koosco.sql
  */
 sealed interface Command
 
-data class InsertCommand(val value: String): Command
+data class CreateTableCommand(val tableName: String): Command
 
-object SelectCommand: Command
+data class InsertCommand(val tableName: String, val value: String): Command
+
+data class SelectCommand(val tableName: String): Command

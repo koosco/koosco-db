@@ -1,7 +1,9 @@
 package storage
 
-import com.koosco.storage.DiskManager
+import com.koosco.buffer.BufferPool
+import com.koosco.storage.FileDiskManager
 import com.koosco.storage.HeapTable
+import com.koosco.storage.Page
 import org.junit.jupiter.api.Test
 import java.nio.file.Paths
 
@@ -15,8 +17,9 @@ class HeapTableTest {
 
     @Test
     fun givenVariable_whenInsert_thenCanRetrieve() {
-        val diskManager = DiskManager(Paths.get("data/heap.db"))
-        val heap = HeapTable(diskManager)
+        val fileDiskManager = FileDiskManager(Paths.get("data/heap.db"))
+        val bufferPool = BufferPool(fileDiskManager, 64, Page.PAGE_SIZE)
+        val heap = HeapTable(fileDiskManager, bufferPool)
 
         val r1 = heap.insertRow("hello".toByteArray())
         val r2 = heap.insertRow("world".toByteArray())
